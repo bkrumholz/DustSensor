@@ -75,7 +75,7 @@ def start_tracking():
         n += 1
         print('Waking up sensor')
         sensor.sleep(sleep=False)
-        time.sleep(60)
+        time.sleep(30)
         print('Taking reads')
         pm_2_5, pm_10 = read_sensor(sensor, 6, 5)
         aqi_2_5 = aqi.to_iaqi(aqi.POLLUTANT_PM25, str(pm_2_5))
@@ -87,7 +87,7 @@ def start_tracking():
         conn.commit()
         sensor.sleep(sleep=True)
         # print('Cooldown')
-        run_wait_time = 10   # wait time between runs in minutes. #TODO Add waiting into config
+        run_wait_time = 15   # wait time between runs in minutes. #TODO Add waiting into config
         for minute in range(0, run_wait_time):
             time_to_run = run_wait_time - minute
             print("Time until next run: {0} minute(s)".format(time_to_run))
