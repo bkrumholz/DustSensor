@@ -1,10 +1,10 @@
-import serial
 import sds011
 import aqi
 import time
 import psycopg2
 import datetime
 from configparser import ConfigParser
+
 
 # https://tutswiki.com/read-write-config-files-in-python/
 def create_config() -> None:
@@ -20,6 +20,7 @@ def create_config() -> None:
         "port": 'COM4',
         "baudrate": 9600
     }
+
     with open('config.ini', 'w') as conf:
         config_object.write(conf)
 
@@ -29,21 +30,20 @@ def read_config():
     config_object.read("config.ini")
     return config_object
 
-def readSensor(sensor, wait_time: int, readings: int) -> [float, float]:
+
+def read_sensor(sensor, wait_time: int, readings: int) -> [float, float]:
     if wait_time < 1:
         wait_time = 5
     if readings < 1:
         return None
-    avg_2_5 = 0
-    avg_10 = 0
     pm_2_5, pm_10 = sensor.query()
     avg_2_5 = pm_2_5 / readings
     avg_10 = pm_10 / readings
     for read in range(readings):
         time.sleep(wait_time)
         pm_2_5, pm_10 = sensor.query()
-        avg_2_5 = avg_2_5 + (pm_2_5/readings)
-        avg_10 = avg_10 + (pm_10/readings)
+        avg_2_5 += (pm_2_5/readings)
+        avg_10 += (pm_10/readings)
     return [round(avg_2_5, 1), round(avg_10, 1)]
 
 
@@ -69,31 +69,33 @@ def start_tracking():
         return None
     # print(conn.execute("Select * from test_table"))
     n = 0
-    while True:
+    while True:    # Currently infinite loop #TODO Figure out graceful way to end
         n += 1
         print('Waking up sensor')
         sensor.sleep(sleep=False)
         time.sleep(60)
         print('Taking reads')
-        pm_2_5, pm_10 = readSensor(sensor, 6, 5)
+        pm_2_5, pm_10 = read_sensor(sensor, 6, 5)
         aqi_2_5 = aqi.to_iaqi(aqi.POLLUTANT_PM25, str(pm_2_5))
         aqi_10 = aqi.to_iaqi(aqi.POLLUTANT_PM10, str(pm_10))
         print('Loop '+str(n)+':', pm_2_5, pm_10, aqi_2_5, aqi_10)
         now = datetime.datetime.now()
-        print(now)
-        print("This is now ('{0}',{1},{2},{3},{4})".format(str(now), str(pm_2_5), str(pm_10), str(aqi_2_5), str(aqi_10)))
+        print("Current readings: ('{0}', {1}, {2}, {3}, {4})".format(str(now), str(pm_2_5), str(pm_10), str(aqi_2_5), str(aqi_10)))
         cur.execute("INSERT INTO test_table values ('{0}',{1},{2},{3},{4})".format(str(now), str(pm_2_5), str(pm_10), str(aqi_2_5), str(aqi_10)))
         conn.commit()
         sensor.sleep(sleep=True)
-        print('Cooldown')
-        wait_time = 10 #wait time between runs in minutes.
-        for minute in range(0, wait_time):
-            print("Time until next run:{0} minute(s)".format(str(wait_time-minute)), end='\r')
+        # print('Cooldown')
+        run_wait_time = 10   # wait time between runs in minutes. #TODO Add waiting into config
+        for minute in range(0, run_wait_time):
+            time_to_run = run_wait_time - minute
+            print("Time until next run: {0} minute(s)".format(time_to_run))
+            # print("Time until next run: {0} minute(s)".format(time_to_run), end='\r')
             time.sleep(60)
         print("Starting next run")
 
     conn.close()
     sensor.sleep(sleep=True)
+    return None
 
 
 def main():
