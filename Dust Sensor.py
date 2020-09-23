@@ -58,14 +58,16 @@ def start_tracking():
             database=database_config['database'],
             user=database_config['user'],
             password=database_config['password'])
-    except:
-        print('Database could not be connected to.')
+    except Exception as e:
+        print('Database could not be connected to:')
+        print(e)
         return None
     cur = conn.cursor()
     try:
         sensor = sds011.SDS011(sensor_config['port'], baudrate=sensor_config['baudrate'], use_query_mode=True)
-    except:
+    except Exception as e:
         print('Could not connect to sensor.')
+        print(e)
         return None
     # print(conn.execute("Select * from test_table"))
     n = 0
