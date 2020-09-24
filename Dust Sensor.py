@@ -102,7 +102,7 @@ def start_tracking():
             break
         print("Starting next run")
     if stop_run and sensor_config['sensor_id']:
-        cur.execute("UPDATE sensor_controls (stop_readings) SET (FALSE) where sensor_controls.sensor = {}".format(sensor_config['sensor_id']))
+        cur.execute("UPDATE sensor_controls SET stop_readings = FALSE where sensor_controls.sensor = {}".format(sensor_config['sensor_id']))
         conn.commit()
     conn.close()
     sensor.sleep(sleep=True)
