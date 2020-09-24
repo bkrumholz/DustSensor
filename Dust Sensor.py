@@ -95,13 +95,15 @@ def start_tracking():
             time_to_run = run_wait_time - minute
             if time_to_run <= 0:
                 break
-            print("Time until next run: {0} minute(s)".format(time_to_run))
+            print("Time until next run: {0} minute(s)".format(time_to_run)) #todo fix (s) for minutes
             # print("Time until next run: {0} minute(s)".format(time_to_run), end='\r')
             time.sleep(60)
         if stop_run:
             break
         print("Starting next run")
-
+    if stop_run and sensor_config['sensor_id'] > 0:
+        cur.execute("INSERT INTO sensor_controls (stop_readings) values (FALSE) where sensor_controls.sensor = {}".format(sensor_config['sensor_id']))
+        conn.commit()
     conn.close()
     sensor.sleep(sleep=True)
     return None
