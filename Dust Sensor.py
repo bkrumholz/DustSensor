@@ -18,7 +18,8 @@ def create_config() -> None:
     }
     config_object["Sensor"] = {
         "port": 'COM4',
-        "baudrate": 9600
+        "baudrate": 9600,
+        "sensor_id": '1'
     }
 
     with open('config.ini', 'w') as conf:
@@ -71,13 +72,14 @@ def start_tracking():
         return None
     # print(conn.execute("Select * from test_table"))
     n = 0
-    while True:    # Currently infinite loop #TODO Figure out graceful way to end
+    stop_run, run_wait_time, samples, wait_per_sample = check_controls(cur, sensor_config['sensor_id'])
+    while True:    # Currently infinite loop #Set sensor_controls.stop_readings to True to stop
         n += 1
         print('Waking up sensor')
         sensor.sleep(sleep=False)
         time.sleep(30)
         print('Taking reads')
-        pm_2_5, pm_10 = read_sensor(sensor, 6, 5)
+        pm_2_5, pm_10 = read_sensor(sensor, wait_per_sample, samples)
         aqi_2_5 = aqi.to_iaqi(aqi.POLLUTANT_PM25, str(pm_2_5))
         aqi_10 = aqi.to_iaqi(aqi.POLLUTANT_PM10, str(pm_10))
         print('Loop '+str(n)+':', pm_2_5, pm_10, aqi_2_5, aqi_10)
@@ -86,13 +88,18 @@ def start_tracking():
         cur.execute("INSERT INTO test_table values ('{0}',{1},{2},{3},{4})".format(str(now), str(pm_2_5), str(pm_10), str(aqi_2_5), str(aqi_10)))
         conn.commit()
         sensor.sleep(sleep=True)
-        # print('Cooldown')
-        run_wait_time = 15   # wait time between runs in minutes. #TODO Add waiting into config
         for minute in range(0, run_wait_time):
+            stop_run, run_wait_time, samples, wait_per_sample = check_controls(cur, sensor_config['sensor_id'])
+            if stop_run:
+                break
             time_to_run = run_wait_time - minute
+            if time_to_run <= 0:
+                break
             print("Time until next run: {0} minute(s)".format(time_to_run))
             # print("Time until next run: {0} minute(s)".format(time_to_run), end='\r')
             time.sleep(60)
+        if stop_run:
+            break
         print("Starting next run")
 
     conn.close()
@@ -100,9 +107,61 @@ def start_tracking():
     return None
 
 
+def test_hold():
+    config = read_config()
+    database_config = config['Database']
+    sensor_config = config['Sensor']
+    try:
+        conn = psycopg2.connect(
+            host=database_config['host_ip'],
+            port=database_config['port'],
+            database=database_config['database'],
+            user=database_config['user'],
+            password=database_config['password'])
+    except Exception as e:
+        print('Database could not be connected to:')
+        print(e)
+        return None
+    cur = conn.cursor()
+    # cur.execute("select ctrl.stop_readings from sensor_controls as ctrl where ctrl.sensor = {0}".format(str(sensor_config.sensor_id)))
+    # cur.execute("select ctrl.stop_readings from sensor_controls as ctrl where ctrl.sensor = 1")
+    # row = cur.fetchone()
+    stop_run, wait_time, samples, wait_per_sample = check_controls(cur, 2)
+    if stop_run:
+        print("Ending Run")
+        return None
+    print('Continuing run', wait_time, samples, wait_per_sample)
+    conn.close()
+    return None
+
+
+def check_controls(cursor, sensor_id: int = 0) -> (bool, int, float):
+    stop_run = False
+    wait_per_sample, wait_time, samples = [0] * 3 # Declare variables in case they come back as null
+    if not cursor:
+        return None
+    cursor.execute("select ctrl.stop_readings, ctrl.samples_per_read, ctrl.wait_btw_samples, ctrl.wait_btw_read from sensor_controls as ctrl where ctrl.sensor = {0}".format(str(sensor_id)))
+    row = cursor.fetchone()
+    if row:
+        stop_run = row[0]
+        samples = row[1]
+        wait_per_sample = row[2]
+        wait_time = row[3]
+    if not stop_run:
+        stop_run = False
+    if not wait_time or wait_time < 1:
+        wait_time = 15
+    if not samples or samples < 1:
+        samples = 5
+    if not wait_per_sample or wait_per_sample < 1:
+        wait_per_sample = 6
+    return stop_run, wait_time, samples, wait_per_sample
+
+
 def main():
     print('Starting process...')
     start_tracking()
+    # test_hold()
     # create_config()
     return None
 
