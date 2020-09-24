@@ -101,7 +101,7 @@ def start_tracking():
         if stop_run:
             break
         print("Starting next run")
-    if stop_run and sensor_config['sensor_id'] > 0:
+    if stop_run and sensor_config['sensor_id']:
         cur.execute("INSERT INTO sensor_controls (stop_readings) values (FALSE) where sensor_controls.sensor = {}".format(sensor_config['sensor_id']))
         conn.commit()
     conn.close()
