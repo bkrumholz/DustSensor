@@ -1,12 +1,13 @@
-import sds011
-import aqi
-import time
-import psycopg2
 import datetime
-from configparser import ConfigParser
 import json
+import time
 import urllib.request
+from configparser import ConfigParser
 from statistics import mean
+
+import aqi
+import psycopg2
+import sds011
 
 
 # https://tutswiki.com/read-write-config-files-in-python/
@@ -224,30 +225,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-# ser = serial.Serial('COM4', 9600, timeout=0,parity=serial.PARITY_EVEN, rtscts=1)
-# print(ser.name)         # check which port was really used
-# print(ser.read(19))
-# # ser.write(b'hello')     # write a string
-# ser.close()           # close port
-# serial.Serial('COM4',9600).close()
-# sensor = sds011.SDS011('COM4', baudrate=9600, use_query_mode=True)
-# print(sensor.query())
-# sensor.sleep()
-# sensor.sleep(30)
-# sensor.sleep(sleep=False)
-# sensor.sleep(30)
-# time.sleep(30)
-# for n in range(30):
-#     sensor.sleep(sleep=True)
-#     time.sleep(15)
-#     print('45 Seconds')
-#     time.sleep(15)
-#     sensor.sleep(sleep=False)
-#     time.sleep(15)
-#     print("15 Seconds")
-#     time.sleep(15)
-#     pm_2_5, pm_10 = sensor.query()
-#     aqi_2_5 = aqi.to_iaqi(aqi.POLLUTANT_PM25, str(pm_2_5))
-#     aqi_10 = aqi.to_iaqi(aqi.POLLUTANT_PM10, str(pm_10))
-#     print('Loop '+str(n)+':', pm_2_5, pm_10, aqi_2_5, aqi_10)
