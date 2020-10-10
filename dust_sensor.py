@@ -129,6 +129,7 @@ def start_tracking():
         pm_2_5, pm_10 = read_sensor(sensor, wait_per_sample, samples)
         aqi_2_5 = aqi.to_iaqi(aqi.POLLUTANT_PM25, str(pm_2_5))
         aqi_10 = aqi.to_iaqi(aqi.POLLUTANT_PM10, str(pm_10))
+        print('Get PurpleAir data')
         s_nfo = check_purple_aq()
         print('Loop '+str(n)+':', pm_2_5, pm_10, aqi_2_5, aqi_10)
         print('Purple air:', str(s_nfo['aqi2_5']), str(s_nfo['aqi10']), str(s_nfo['humidity']), str(s_nfo['temp']))
