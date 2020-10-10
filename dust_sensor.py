@@ -14,10 +14,10 @@ import sds011
 def create_config() -> None:
     config_object = ConfigParser()
     config_object["Database"] = {
-        "host_ip":  '192.168.1.56',
+        "host_ip":  '192.168.1.1',
         "port": '5432',
         "database": 'testbed',
-        "user": 'postgres',
+        "user": '',
         "password": ''
     }
     config_object["Sensor"] = {
