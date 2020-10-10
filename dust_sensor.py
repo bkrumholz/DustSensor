@@ -137,7 +137,7 @@ def start_tracking():
         now = datetime.datetime.now()
         # print("Current readings: ('{0}', {1}, {2}, {3}, {4})".format(str(now), str(pm_2_5), str(pm_10), str(aqi_2_5), str(aqi_10)))
         cur.execute("INSERT INTO testbed.public.test_table (timestamp, pm_2_5, pm_10, aqi_2_5, aqi_10, purple_aqi_2_5, purple_aqi_10, "
-                    "temperature, humidity) values ('{0}',{1},{2},{3},{4},{5},{6},{7},{8})".format(str(now),
+                    "humidity, temperature) values ('{0}',{1},{2},{3},{4},{5},{6},{7},{8})".format(str(now),
                     str(pm_2_5), str(pm_10), str(aqi_2_5), str(aqi_10), str(s_nfo['aqi2_5']), str(s_nfo['aqi10']),
                     str(s_nfo['humidity']), str(s_nfo['temp'])))
         conn.commit()
@@ -163,7 +163,7 @@ def start_tracking():
     sensor.sleep(sleep=True)
     return None
 
-
+# Just used for testing
 def test_hold():
     config = read_config()
     database_config = config['Database']
