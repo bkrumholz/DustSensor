@@ -73,7 +73,7 @@ def check_purple_aq(sensor_list: str = ['17621', '17663']) -> dict:
     s_nfo['temp'] = round(mean(temp))
     return s_nfo
 
-
+##make it work
 def read_config():
     config_object = ConfigParser()
     config_object.read("config.ini")
