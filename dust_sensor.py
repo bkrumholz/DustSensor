@@ -96,6 +96,21 @@ def read_sensor(sensor, wait_time: int, readings: int) -> [float, float]:
     return [round(avg_2_5, 1), round(avg_10, 1)]
 
 
+# Function to turn off sensor to avoid burning out laser
+def stop_sensor():
+    config = read_config()
+    sensor_config = config['Sensor']
+    try:
+        sensor = sds011.SDS011(sensor_config['port'], baudrate=sensor_config['baudrate'], use_query_mode=True)
+    except Exception as e:
+        print('Could not connect to sensor.')
+        print(e)
+        return None
+    print('Shutdown sensor if still running')
+    sensor.sleep(sleep=True)
+    return None
+
+
 def start_tracking():
     config = read_config()
     database_config = config['Database']
