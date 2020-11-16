@@ -3,3 +3,4 @@
 .ssh/id_rsa.pub
 config.ini
 .idea
+__pycache__/dust_sensor.cpython-38.pyc
