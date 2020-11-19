@@ -80,6 +80,9 @@ def read_config():
     return config_object
 
 
+##TODO Make this work with AWS
+
+
 def read_sensor(sensor, wait_time: int, readings: int) -> [float, float]:
     if wait_time < 1:
         wait_time = 5
