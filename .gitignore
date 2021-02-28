@@ -5,3 +5,4 @@
 config.ini
 .idea
 __pycache__/dust_sensor.cpython-38.pyc
+.idea/DustSensor.iml
