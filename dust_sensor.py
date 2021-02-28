@@ -115,6 +115,8 @@ def stop_sensor():
 
 
 def start_tracking():
+    error_cnt = 0
+    old_error_cnt = 0
     config = read_config()
     database_config = config['Database']
     sensor_config = config['Sensor']
@@ -149,19 +151,37 @@ def start_tracking():
         aqi_2_5 = aqi.to_iaqi(aqi.POLLUTANT_PM25, str(pm_2_5))
         aqi_10 = aqi.to_iaqi(aqi.POLLUTANT_PM10, str(pm_10))
         print('Get PurpleAir data')
-        s_nfo = check_purple_aq()
+        try:
+            s_nfo = check_purple_aq()
+        except Exception as e:
+            errorlog=open("error.log","a")
+            print('Check purple: {:%Y-%m-%d %H:%M:%S}: {}'.format(datetime.datetime.now(), str(e)),file=errorlog)
+            errorlog.close()
+            error_cnt+=1
         print('Loop '+str(n)+':', pm_2_5, pm_10, aqi_2_5, aqi_10)
         print('Purple air:', str(s_nfo['aqi2_5']), str(s_nfo['aqi10']), str(s_nfo['humidity']), str(s_nfo['temp']))
         now = datetime.datetime.now()
         # print("Current readings: ('{0}', {1}, {2}, {3}, {4})".format(str(now), str(pm_2_5), str(pm_10), str(aqi_2_5), str(aqi_10)))
-        cur.execute("INSERT INTO testbed.public.test_table (timestamp, pm_2_5, pm_10, aqi_2_5, aqi_10, purple_aqi_2_5, purple_aqi_10, "
+        try:
+            cur.execute("INSERT INTO testbed.public.test_table (timestamp, pm_2_5, pm_10, aqi_2_5, aqi_10, purple_aqi_2_5, purple_aqi_10, "
                     "humidity, temperature) values ('{0}',{1},{2},{3},{4},{5},{6},{7},{8})".format(str(now),
                     str(pm_2_5), str(pm_10), str(aqi_2_5), str(aqi_10), str(s_nfo['aqi2_5']), str(s_nfo['aqi10']),
                     str(s_nfo['humidity']), str(s_nfo['temp'])))
+        except Exception as e:
+            errorlog=open("error.log","a")
+            print('Save readings: {:%Y-%m-%d %H:%M:%S}: {}'.format(datetime.datetime.now(), str(e)),file=errorlog)
+            errorlog.close()
+            error_cnt+=1
         conn.commit()
         sensor.sleep(sleep=True)
         for minute in range(0, run_wait_time):
-            stop_run, run_wait_time, samples, wait_per_sample = check_controls(cur, int(sensor_config['sensor_id']))
+            try:
+                stop_run, run_wait_time, samples, wait_per_sample = check_controls(cur, int(sensor_config['sensor_id']))
+            except Exception as e:
+                errorlog=open("error.log","a")
+                print('Check sensor control: {:%Y-%m-%d %H:%M:%S}: {}'.format(datetime.datetime.now(), str(e)),file=errorlog)
+                errorlog.close()
+                error_cnt+=1
             if stop_run:
                 break
             time_to_run = run_wait_time - minute
@@ -170,12 +190,25 @@ def start_tracking():
             print("Time until next run: {0} minute(s)".format(time_to_run)) #todo fix (s) for minutes
             # print("Time until next run: {0} minute(s)".format(time_to_run), end='\r')
             time.sleep(60)
+        if error_cnt>30:
+            stop_run=True
+        if old_error_cnt == error_cnt:   #check if errors are increasing with each cycle
+            error_cnt = 0
+            old_error_cnt = 0
+        else:  #error for this cycle
+            old_error_cnt=error_cnt
         if stop_run:
             break
         print("Starting next run")
     if stop_run and sensor_config['sensor_id']:
-        cur.execute("UPDATE testbed.public.sensor_controls SET stop_readings = FALSE where sensor_controls.sensor = {}".format(sensor_config['sensor_id']))
-        conn.commit()
+        try:
+            cur.execute("UPDATE testbed.public.sensor_controls SET stop_readings = FALSE where sensor_controls.sensor = {}".format(sensor_config['sensor_id']))
+            conn.commit()
+        except Exception as e:
+            errorlog=open("error.log","a")
+            print('Update sensor control: {:%Y-%m-%d %H:%M:%S}: {}'.format(datetime.datetime.now(), str(e)),file=errorlog)
+            errorlog.close()
+            error_cnt+=1
     print("Shutting down sensor and DB connection.")
     conn.close()
     sensor.sleep(sleep=True)
