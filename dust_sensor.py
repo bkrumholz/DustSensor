@@ -47,8 +47,8 @@ def check_purple_aq(sensor_list: str = ['17621', '17663']) -> dict:
         if len(sensor_list) > 1:   #Give a second between requests to avoid getting throttled by API
             time.sleep(1)
         with urllib.request.urlopen("https://www.purpleair.com/json?show={0}".format(sensor)) as url:
-            data = json.loads(url.read().decode())
             try:
+                data = json.loads(url.read().decode())
                 pm2_5.append((float(data['results'][1]['pm2_5_atm'])+float(data['results'][0]['pm2_5_atm']))/2)
                 aqi2_5.append(int(aqi.to_iaqi(aqi.POLLUTANT_PM25, str(pm2_5[-1]))))
                 pm10.append((float(data['results'][1]['pm10_0_atm'])+float(data['results'][0]['pm10_0_atm']))/2)
