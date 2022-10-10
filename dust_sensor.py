@@ -158,6 +158,14 @@ def start_tracking():
             print('Check purple: {:%Y-%m-%d %H:%M:%S}: {}'.format(datetime.datetime.now(), str(e)),file=errorlog)
             errorlog.close()
             error_cnt+=1
+            
+            s_nfo = dict() #Create an empty dictionary if purple air is down
+            s_nfo['pm2_5'] = 'NULL'
+            s_nfo['aqi2_5'] = 'NULL'
+            s_nfo['pm10'] = 'NULL'
+            s_nfo['aqi10'] = 'NULL'
+            s_nfo['humidity'] = 'NULL'
+            s_nfo['temp'] = 'NULL'
         print('Loop '+str(n)+':', pm_2_5, pm_10, aqi_2_5, aqi_10)
         print('Purple air:', str(s_nfo['aqi2_5']), str(s_nfo['aqi10']), str(s_nfo['humidity']), str(s_nfo['temp']))
         now = datetime.datetime.now()
