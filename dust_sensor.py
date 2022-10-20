@@ -154,11 +154,12 @@ def start_tracking():
         try:
             s_nfo = check_purple_aq()
         except Exception as e:
-            errorlog=open("error.log","a")
-            print('Check purple: {:%Y-%m-%d %H:%M:%S}: {}'.format(datetime.datetime.now(), str(e)),file=errorlog)
-            errorlog.close()
-            error_cnt+=1
-            
+            #TODO Fix purple connection or replace
+            #errorlog=open("error.log","a")
+            # print('Check purple: {:%Y-%m-%d %H:%M:%S}: {}'.format(datetime.datetime.now(), str(e)),file=errorlog)
+            # errorlog.close()
+            # error_cnt+=1
+
             s_nfo = dict() #Create an empty dictionary if purple air is down
             s_nfo['pm2_5'] = 'NULL'
             s_nfo['aqi2_5'] = 'NULL'
